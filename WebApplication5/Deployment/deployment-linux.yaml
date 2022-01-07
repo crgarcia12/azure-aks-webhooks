@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp5-deployment
+  labels:
+    app: webapp5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp5
+  template:
+    metadata:
+      labels:
+        app: webapp5
+    spec:
+      containers:
+      - name: webapp5
+        image: crgarakspublicacr.azurecr.io/webapp5:9
+        ports:
+        - containerPort: 80
+        lifecycle:
+          preStop:
+            httpGet:
+              path: api/webhooks
+              port: 80
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: MY_POD_SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+      terminationGracePeriodSeconds: 3600
+      nodeSelector:
+        kubernetes.io/os: linux  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp5-service
+spec:
+  selector:
+    app: webapp5
+  ports:
+    - protocol: TCP
+      port: 80
+  type: LoadBalancer

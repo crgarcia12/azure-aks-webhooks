@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: windemo-deployment
+  labels:
+    app: windemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: windemo
+  template:
+    metadata:
+      labels:
+        app: windemo
+    spec:
+      containers:
+      - name: windemo
+        image: mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest
+        ports:
+        - containerPort: 80
+      nodeSelector:
+        kubernetes.io/os: windows
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: windemo-service
+spec:
+  selector:
+    app: windemo
+  ports:
+    - protocol: TCP
+      port: 80
+  type: LoadBalancer
